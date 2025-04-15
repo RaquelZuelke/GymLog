@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.LiveData;
 
 import com.example.gymlog.database.GymLogRepository;
 import com.example.gymlog.database.entities.User;
@@ -17,7 +18,6 @@ public class LoginActivity extends AppCompatActivity {
     private ActivityLoginBinding binding;
 
     private GymLogRepository repository;
-    private User user = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,35 +30,33 @@ public class LoginActivity extends AppCompatActivity {
         binding.loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!verifyUser()){
-                    toastmaker("Invalid credentials");
-                }else{
-                Intent intent = MainActivity.mainActivityIntentFactory(getApplicationContext(), user.getId());
-                startActivity(intent);
-                }
-                }
+                verifyUser();
+            }
         });
 
     }
-    private boolean verifyUser(){
+    private void verifyUser(){
         String username = binding.userNameLoginEditText.getText().toString();
+
         if(username.isEmpty()){
             toastmaker("username should not be blank");
-            return false;
+            return;
         }
-        user = repository.getUserByUserName(username);
-        if(user != null){
-            String password = binding.passwordLoginEditText.getText().toString();
-            if(password.equals(user.getPassword())){
-               return true;
+        LiveData<User> userObserver = repository.getUserByUserName(username);
+        userObserver.observe(this, user -> {
+            if(user != null){
+                String password = binding.passwordLoginEditText.getText().toString();
+                if(password.equals(user.getPassword())){
+                    startActivity(MainActivity.mainActivityIntentFactory(getApplicationContext(),user.getId()));
+                }else{
+                    toastmaker("Invalid password");
+                    binding.passwordLoginEditText.setSelection(0);
+                }
             }else{
-                toastmaker("Invalid password");
-                return false;
+                toastmaker(String.format("No user %s is not a valid username.",username));
+                binding.userNameLoginEditText.setSelection(0);
             }
-        }
-        toastmaker(String.format("No %s found"
-        ,username));
-        return false;
+        });
     }
 
     private void toastmaker(String message) {
