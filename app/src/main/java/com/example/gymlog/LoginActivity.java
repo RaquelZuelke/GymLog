@@ -19,10 +19,10 @@ public class LoginActivity extends AppCompatActivity {
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        binding.loginButton.setOnLongClickListener(new View.OnLongClickListener() {
+        binding.loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onLongClick(View v) {
-                Intent intent = MainActivity.mainActivityIntentFactory(getApplicationContext(),0);
+            public void onClick(View v) {
+                Intent intent = MainActivity.mainActivityIntentFactory(getApplicationContext(), 0);
                 startActivity(intent);
             }
         });
